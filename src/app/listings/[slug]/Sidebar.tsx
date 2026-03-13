@@ -12,6 +12,7 @@ import {
   LogOut,
   Shield,
 } from 'lucide-react';
+import { useRouter } from 'next/router';
 
 const MENU_ITEMS = [
   { name: 'Overview', href: '/dashboard/user', icon: LayoutDashboard },
