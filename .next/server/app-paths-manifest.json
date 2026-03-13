@@ -1,7 +1,7 @@
 {
   "/dashboard/settings/page": "app/dashboard/settings/page.js",
   "/dashboard/user/page": "app/dashboard/user/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js",
   "/dashboard/properties/page": "app/dashboard/properties/page.js",
-  "/dashboard/admin/add-property/page": "app/dashboard/admin/add-property/page.js"
+  "/dashboard/admin/add-property/page": "app/dashboard/admin/add-property/page.js",
+  "/dashboard/admin/page": "app/dashboard/admin/page.js"
 }

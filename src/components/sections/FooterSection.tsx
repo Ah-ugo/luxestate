@@ -100,7 +100,7 @@ export default function FooterSection() {
         </div>
 
         <div className='border-t border-gold-400/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gold-100/30'>
-          <p>© 2024 LuxEstate US. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} LuxEstate US. All rights reserved.</p>
           <p>Designed for Luxury.</p>
         </div>
       </div>

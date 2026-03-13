@@ -111,10 +111,6 @@ export const authApi = {
   getMe: () => api.get('/api/users/me'),
 };
 
-export const bookingApi = {
-  create: (data: any) => api.post('/api/bookings', data),
-};
-
 export const contactApi = {
   send: (data: any) => api.post('/api/contact', data),
 };
