@@ -2,150 +2,231 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { listingsApi } from '@/lib/api';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import { authApi } from '@/lib/api';
 import { Loader2, Save } from 'lucide-react';
 
-const initialFormState = {
-  title: '',
-  description: '',
-  listing_type: 'buy',
-  price: { amount: 0, currency: 'USD' },
-  location: { city: '', address: '' },
-  bedrooms: 0,
-  bathrooms: 0,
-  size_sqm: 0,
-};
-
-export default function EditPropertyPage() {
-  const { isAdmin, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const { id } = useParams();
+export default function SettingsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [form, setForm] = useState({ firstName: '', lastName: '' });
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [form, setForm] = useState(initialFormState);
+  const [success, setSuccess] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState({
+    type: '',
+    text: '',
+  });
 
   useEffect(() => {
-    if (id) {
-      listingsApi
-        .get(id as string)
-        .then((res) => {
-          setForm(res.data);
-          setPageLoading(false);
-        })
-        .catch((err) => {
-          setError('Could not load listing data.');
-          setPageLoading(false);
-        });
+    if (user) {
+      setForm({
+        firstName: user.first_name,
+        lastName: user.last_name,
+      });
     }
-  }, [id]);
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setSuccess(false);
     try {
-      await listingsApi.update(id as string, form);
-      router.push('/dashboard/admin/manage-listings');
+      await authApi.updateMe({
+        first_name: form.firstName,
+        last_name: form.lastName,
+      });
+      setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update listing.');
+      console.error('Failed to update profile', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading || pageLoading) {
-    return <div className='text-gold-400 p-8'>Loading...</div>;
-  }
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage({ type: '', text: '' });
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      setPasswordMessage({
+        type: 'error',
+        text: 'New passwords do not match.',
+      });
+      return;
+    }
+    if (passwordForm.new_password.length < 8) {
+      setPasswordMessage({
+        type: 'error',
+        text: 'Password must be at least 8 characters.',
+      });
+      return;
+    }
 
-  if (!isAdmin) {
-    return <div className='text-gold-400 p-8'>Access Denied.</div>;
+    setPasswordLoading(true);
+    try {
+      const res = await authApi.changePassword(passwordForm);
+      setPasswordMessage({ type: 'success', text: res.data.message });
+      setPasswordForm({
+        current_password: '',
+        new_password: '',
+        confirm_password: '',
+      });
+    } catch (error: any) {
+      setPasswordMessage({
+        type: 'error',
+        text: error.response?.data?.detail || 'Failed to change password.',
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  if (authLoading) {
+    return <div className='text-gold-400 p-8'>Loading Settings...</div>;
   }
 
   return (
     <div className='space-y-8'>
-      <h1 className='text-3xl font-display text-gold-100'>Edit Property</h1>
-      <form
-        onSubmit={handleSubmit}
-        className='glass-card p-8 space-y-6 max-w-4xl'
-      >
-        <div className='space-y-2'>
-          <label className='modal-label'>Title</label>
-          <input
-            required
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className='lux-input'
-          />
-        </div>
-        <div className='space-y-2'>
-          <label className='modal-label'>Description</label>
-          <textarea
-            required
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className='lux-input min-h-[120px]'
-          />
-        </div>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+      <div>
+        <h1 className='text-3xl font-display text-gold-100 mb-2'>Settings</h1>
+        <p className='text-gold-100/60 font-light'>
+          Manage your account details.
+        </p>
+      </div>
+
+      <div className='max-w-2xl'>
+        <form onSubmit={handleSubmit} className='glass-card p-8 space-y-6'>
+          <h3 className='font-display text-xl text-gold-100 border-b border-gold-400/10 pb-4'>
+            Profile Information
+          </h3>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='space-y-2'>
+              <label className='modal-label'>First Name</label>
+              <input
+                value={form.firstName}
+                onChange={(e) =>
+                  setForm({ ...form, firstName: e.target.value })
+                }
+                className='lux-input'
+              />
+            </div>
+            <div className='space-y-2'>
+              <label className='modal-label'>Last Name</label>
+              <input
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                className='lux-input'
+              />
+            </div>
+          </div>
           <div className='space-y-2'>
-            <label className='modal-label'>Price (USD)</label>
+            <label className='modal-label'>Email Address</label>
+            <input value={user?.email || ''} className='lux-input' disabled />
+            <p className='text-xs text-gold-100/40'>
+              Email address cannot be changed.
+            </p>
+          </div>
+          <div className='flex items-center justify-between pt-6 border-t border-gold-400/10'>
+            <button
+              disabled={loading}
+              className='btn-gold flex items-center gap-2'
+            >
+              {loading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <Save size={16} />
+              )}
+              Save Changes
+            </button>
+            {success && (
+              <p className='text-sm text-green-400'>
+                Profile updated successfully!
+              </p>
+            )}
+          </div>
+        </form>
+
+        <form
+          onSubmit={handlePasswordChange}
+          className='glass-card p-8 space-y-6 mt-8'
+        >
+          <h3 className='font-display text-xl text-gold-100 border-b border-gold-400/10 pb-4'>
+            Change Password
+          </h3>
+          <div className='space-y-2'>
+            <label className='modal-label'>Current Password</label>
             <input
+              type='password'
               required
-              type='number'
-              value={form.price.amount}
+              value={passwordForm.current_password}
               onChange={(e) =>
-                setForm({
-                  ...form,
-                  price: { ...form.price, amount: Number(e.target.value) },
+                setPasswordForm({
+                  ...passwordForm,
+                  current_password: e.target.value,
                 })
               }
               className='lux-input'
             />
           </div>
-          <div className='space-y-2'>
-            <label className='modal-label'>Bedrooms</label>
-            <input
-              required
-              type='number'
-              value={form.bedrooms}
-              onChange={(e) =>
-                setForm({ ...form, bedrooms: Number(e.target.value) })
-              }
-              className='lux-input'
-            />
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='space-y-2'>
+              <label className='modal-label'>New Password</label>
+              <input
+                type='password'
+                required
+                value={passwordForm.new_password}
+                onChange={(e) =>
+                  setPasswordForm({
+                    ...passwordForm,
+                    new_password: e.target.value,
+                  })
+                }
+                className='lux-input'
+              />
+            </div>
+            <div className='space-y-2'>
+              <label className='modal-label'>Confirm New Password</label>
+              <input
+                type='password'
+                required
+                value={passwordForm.confirm_password}
+                onChange={(e) =>
+                  setPasswordForm({
+                    ...passwordForm,
+                    confirm_password: e.target.value,
+                  })
+                }
+                className='lux-input'
+              />
+            </div>
           </div>
-          <div className='space-y-2'>
-            <label className='modal-label'>Bathrooms</label>
-            <input
-              required
-              type='number'
-              value={form.bathrooms}
-              onChange={(e) =>
-                setForm({ ...form, bathrooms: Number(e.target.value) })
-              }
-              className='lux-input'
-            />
-          </div>
-        </div>
-        {error && <p className='text-red-400 text-sm'>{error}</p>}
-        <div className='pt-6 border-t border-gold-400/10'>
-          <button
-            disabled={loading}
-            className='btn-gold flex items-center gap-2'
-          >
-            {loading ? (
-              <Loader2 className='animate-spin' />
-            ) : (
-              <Save size={16} />
+          <div className='flex items-center justify-between pt-6 border-t border-gold-400/10'>
+            <button
+              disabled={passwordLoading}
+              className='btn-gold flex items-center gap-2'
+            >
+              {passwordLoading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <Save size={16} />
+              )}
+              Update Password
+            </button>
+            {passwordMessage.text && (
+              <p
+                className={`text-sm ${passwordMessage.type === 'error' ? 'text-red-400' : 'text-green-400'}`}
+              >
+                {passwordMessage.text}
+              </p>
             )}
-            Save Changes
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
