@@ -1,7 +1,3 @@
 {
-  "/dashboard/admin/messages/page": "app/dashboard/admin/messages/page.js",
-  "/dashboard/investment/page": "app/dashboard/investment/page.js",
-  "/dashboard/messages/page": "app/dashboard/messages/page.js",
-  "/dashboard/admin/manage-listings/page": "app/dashboard/admin/manage-listings/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js"
+  "/dashboard/user/page": "app/dashboard/user/page.js"
 }

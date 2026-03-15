@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 import { chatApi } from '@/lib/api';
 import { Loader2, Send } from 'lucide-react';
@@ -11,7 +11,11 @@ import { motion } from 'framer-motion';
 
 export default function AdminChatMessagePage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
-  const { email: userEmail } = useParams();
+  const router = useRouter();
+  const params = useParams();
+  const userEmail = params.email
+    ? decodeURIComponent(params.email as string)
+    : '';
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const ws = useRef<WebSocket | null>(null);
@@ -22,7 +26,15 @@ export default function AdminChatMessagePage() {
   };
 
   useEffect(() => {
-    if (isAdmin && userEmail) {
+    if (authLoading) {
+      return;
+    }
+    if (!isAdmin) {
+      router.push('/dashboard/user');
+      return;
+    }
+
+    if (userEmail) {
       chatApi.getHistoryForUser(userEmail as string).then((res) => {
         setMessages(res.data);
         scrollToBottom();
@@ -50,7 +62,7 @@ export default function AdminChatMessagePage() {
         ws.current?.close();
       };
     }
-  }, [isAdmin, userEmail]);
+  }, [isAdmin, userEmail, authLoading, router]);
 
   useEffect(() => {
     scrollToBottom();
@@ -98,6 +110,9 @@ export default function AdminChatMessagePage() {
                     : 'bg-obsidian-800 text-gold-100/80'
                 }`}
               >
+                {msg.sender_email !== userEmail && (
+                  <p className='text-xs font-bold text-gold-400 mb-1'>Admin</p>
+                )}
                 <p className='text-sm'>{msg.message}</p>
                 <p className='text-xs text-gold-100/40 mt-1 text-right'>
                   {new Date(msg.created_at).toLocaleTimeString()}

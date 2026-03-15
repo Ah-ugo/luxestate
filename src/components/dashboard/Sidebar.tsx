@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 
 const MENU_ITEMS = [
   { name: 'Overview', href: '/dashboard/user', icon: LayoutDashboard },
-  { name: 'Investments', href: '/dashboard/investment', icon: PieChart },
+  // { name: 'Investments', href: '/dashboard/investment', icon: PieChart },
   { name: 'My Properties', href: '/dashboard/properties', icon: Building },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];

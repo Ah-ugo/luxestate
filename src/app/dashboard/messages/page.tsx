@@ -2,102 +2,128 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/useAuth';
-import { contactApi } from '@/lib/api';
-import { Loader2, Send, CheckCircle2 } from 'lucide-react';
+import { chatApi } from '@/lib/api';
+import { Loader2, Send } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function MessagesPage() {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ subject: '', message: '' });
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const ws = useRef<WebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    setLoading(true);
-    setSent(false);
-    try {
-      await contactApi.send({
-        name: `${user.first_name} ${user.last_name}`,
-        email: user.email,
-        subject: form.subject,
-        message: form.message,
+  useEffect(() => {
+    if (user) {
+      chatApi.getHistory().then((res) => {
+        setMessages(res.data);
+        scrollToBottom();
       });
-      setSent(true);
-      setForm({ subject: '', message: '' });
-    } catch (error) {
-      console.error('Failed to send message', error);
-    } finally {
-      setLoading(false);
+
+      const token = localStorage.getItem('lux_token');
+      const wsUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(
+        /^https/,
+        'ws',
+      );
+      ws.current = new WebSocket(`${wsUrl}/api/chat/ws?token=${token}`);
+
+      ws.current.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type !== 'status') {
+          setMessages((prev) => [...prev, message]);
+        }
+      };
+
+      return () => {
+        ws.current?.close();
+      };
+    }
+  }, [user]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() && ws.current && user) {
+      const messagePayload = {
+        recipient_email: 'admin_inbox', // Users always send to the admin inbox
+        message: newMessage,
+      };
+      ws.current.send(JSON.stringify(messagePayload));
+      setNewMessage('');
     }
   };
 
-  if (authLoading) {
+  if (authLoading || !user) {
     return <div className='text-gold-400 p-8'>Loading Messages...</div>;
   }
 
   return (
     <div className='space-y-8'>
       <div>
-        <h1 className='text-3xl font-display text-gold-100 mb-2'>Messages</h1>
+        <h1 className='text-3xl font-display text-gold-100 mb-2'>
+          Conversation with Admin
+        </h1>
         <p className='text-gold-100/60 font-light'>
           Send a direct inquiry to our concierge team.
         </p>
       </div>
 
-      <div className='max-w-2xl'>
-        {sent ? (
-          <div className='glass-card p-12 text-center'>
-            <CheckCircle2 className='w-12 h-12 text-green-400 mx-auto mb-4' />
-            <h3 className='text-xl text-gold-100'>Message Sent</h3>
-            <p className='text-gold-100/60 text-sm mt-2 mb-6'>
-              Your inquiry has been received. We will respond shortly.
-            </p>
-            <button
-              onClick={() => setSent(false)}
-              className='text-gold-400 text-sm hover:underline'
+      <div className='glass-card h-[60vh] flex flex-col'>
+        <div className='flex-1 p-6 space-y-4 overflow-y-auto'>
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex ${
+                msg.sender_email === user.email
+                  ? 'justify-end'
+                  : 'justify-start'
+              }`}
             >
-              Send another message
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className='glass-card p-8 space-y-6'>
-            <div className='space-y-2'>
-              <label className='modal-label'>Subject</label>
-              <input
-                required
-                value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className='lux-input'
-                placeholder='e.g., Question about property #12345'
-              />
-            </div>
-            <div className='space-y-2'>
-              <label className='modal-label'>Your Message</label>
-              <textarea
-                required
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className='lux-input min-h-[200px] resize-none'
-                placeholder='Please provide as much detail as possible...'
-              />
-            </div>
-            <button
-              disabled={loading}
-              className='btn-gold flex items-center gap-2'
-            >
-              {loading ? (
-                <Loader2 className='animate-spin' />
-              ) : (
-                <Send size={16} />
-              )}
-              Send Inquiry
-            </button>
-          </form>
-        )}
+              <div
+                className={`max-w-md p-3 rounded-lg ${
+                  msg.sender_email === user.email
+                    ? 'bg-gold-400/10 text-gold-100'
+                    : 'bg-obsidian-800 text-gold-100/80'
+                }`}
+              >
+                {msg.sender_email !== user.email && (
+                  <p className='text-xs font-bold text-gold-400 mb-1'>Admin</p>
+                )}
+                <p className='text-sm'>{msg.message}</p>
+                <p className='text-xs text-gold-100/40 mt-1 text-right'>
+                  {new Date(msg.created_at).toLocaleTimeString()}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        <form
+          onSubmit={handleSendMessage}
+          className='p-4 border-t border-gold-400/10 flex gap-4'
+        >
+          <input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className='lux-input flex-1'
+            placeholder='Type your message...'
+          />
+          <button type='submit' className='btn-gold px-6'>
+            <Send size={16} />
+          </button>
+        </form>
       </div>
     </div>
   );
