@@ -7,9 +7,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/lib/api';
+import { useAuth } from '@/lib/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refetchUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ email: '', password: '' });
@@ -25,14 +27,9 @@ export default function LoginPage() {
         password: form.password,
       });
       localStorage.setItem('lux_token', res.data.access_token);
-
-      // Fetch user role to redirect correctly
-      const userRes = await authApi.getMe();
-      if (userRes.data.is_superuser) {
-        router.push('/dashboard/admin');
-      } else {
-        router.push('/dashboard/user');
-      }
+      // Refetch user in context to update auth state before redirecting
+      await refetchUser();
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Invalid credentials');
     } finally {
@@ -102,7 +99,11 @@ export default function LoginPage() {
               <p className='text-red-400 text-sm text-center'>{error}</p>
             )}
 
-            <button disabled={loading} className='btn-gold w-full mt-4'>
+            <button
+              type='submit'
+              disabled={loading}
+              className='btn-gold w-full mt-4'
+            >
               {loading ? <Loader2 className='animate-spin' /> : 'Sign In'}
             </button>
           </form>

@@ -2,11 +2,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { listingsApi } from '@/lib/api';
 import { useAuth } from '@/lib/useAuth';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, Upload, Trash2, X } from 'lucide-react';
+import Image from 'next/image';
 
 const initialFormState = {
   title: '',
@@ -17,6 +18,7 @@ const initialFormState = {
   bedrooms: 0,
   bathrooms: 0,
   size_sqm: 0,
+  images: [],
 };
 
 export default function EditPropertyPage() {
@@ -27,6 +29,8 @@ export default function EditPropertyPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState(initialFormState);
+  const [newFiles, setNewFiles] = useState<FileList | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -54,6 +58,39 @@ export default function EditPropertyPage() {
       setError(err.response?.data?.detail || 'Failed to update listing.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddImages = async () => {
+    if (!newFiles || newFiles.length === 0) return;
+    setLoading(true);
+    const formData = new FormData();
+    Array.from(newFiles).forEach((file) => {
+      formData.append('files', file);
+    });
+    try {
+      const res = await listingsApi.addImages(id as string, formData);
+      setForm(res.data);
+      setNewFiles(null);
+    } catch (err) {
+      setError('Failed to upload new images.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async (publicId: string) => {
+    if (!publicId) {
+      setError('Cannot delete image without a public ID.');
+      return;
+    }
+    if (window.confirm('Are you sure you want to delete this image?')) {
+      try {
+        const res = await listingsApi.deleteImage(id as string, publicId);
+        setForm(res.data);
+      } catch (err) {
+        setError('Failed to delete image.');
+      }
     }
   };
 

@@ -17,24 +17,30 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !isAdmin) {
-      router.push('/dashboard/user');
+    // Wait until the auth status is confirmed
+    if (authLoading) {
+      return;
     }
 
-    if (isAdmin) {
-      Promise.all([
-        dashboardApi.getAdminStats(),
-        listingsApi.getStats(),
-        dashboardApi.getAdminMessages(),
-      ])
-        .then(([statsRes, listingStatsRes, messagesRes]) => {
-          setStats(statsRes.data);
-          setListingStats(listingStatsRes.data);
-          setMessages(messagesRes.data);
-        })
-        .catch((err) => console.error('Failed to fetch admin data', err))
-        .finally(() => setLoading(false));
+    // If auth is done and the user is not an admin, redirect them.
+    if (!isAdmin) {
+      router.push('/dashboard/user');
+      return;
     }
+
+    // If we reach here, user is an admin, so fetch data.
+    Promise.all([
+      dashboardApi.getAdminStats(),
+      listingsApi.getStats(),
+      dashboardApi.getAdminMessages(),
+    ])
+      .then(([statsRes, listingStatsRes, messagesRes]) => {
+        setStats(statsRes.data);
+        setListingStats(listingStatsRes.data);
+        setMessages(messagesRes.data);
+      })
+      .catch((err) => console.error('Failed to fetch admin data', err))
+      .finally(() => setLoading(false));
   }, [isAdmin, authLoading, router]);
 
   if (authLoading || loading || !isAdmin) {

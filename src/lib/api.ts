@@ -47,7 +47,7 @@ export interface Listing {
   bedrooms: number;
   bathrooms: number;
   size_sqm: number;
-  images: { url: string; alt: string }[];
+  images: { url: string; alt: string; public_id?: string }[];
   features?: string[];
   agent_name?: string;
 }
@@ -88,9 +88,18 @@ export const listingsApi = {
     }
   },
   seed: async () => api.post('/api/listings/seed'),
-  create: (data: any) => api.post('/api/listings', data),
+  create: (data: FormData) =>
+    api.post('/api/listings', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   update: (id: string, data: any) => api.put(`/api/listings/${id}`, data),
   delete: (id: string) => api.delete(`/api/listings/${id}`),
+  addImages: (id: string, data: FormData) =>
+    api.post(`/api/listings/${id}/images`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  deleteImage: (id: string, publicId: string) =>
+    api.delete(`/api/listings/${id}/images/${encodeURIComponent(publicId)}`),
 };
 
 export const authApi = {
@@ -114,6 +123,18 @@ export const authApi = {
 export const contactApi = {
   send: (data: any) => api.post('/api/contact', data),
 };
+
+export const chatApi = {
+  getHistory: () => api.get('/api/chat/history'),
+  getHistoryForUser: (email: string) => api.get(`/api/chat/history/${email}`),
+  getConversations: () => api.get('/api/chat/conversations'),
+};
+
+// export const chatApi = {
+//   getHistory: () => api.get('/api/chat/history'),
+//   getHistoryForUser: (email: string) => api.get(`/api/chat/history/${email}`),
+//   getConversations: () => api.get('/api/chat/conversations'),
+// };
 
 export const dashboardApi = {
   getMyRequests: async () => {

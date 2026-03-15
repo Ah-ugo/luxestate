@@ -2,114 +2,125 @@
 
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { dashboardApi, listingsApi } from '@/lib/api';
-import { Mail, Building, MessageSquare } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
+import { chatApi } from '@/lib/api';
+import { Loader2, Send } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function AdminDashboard() {
-  const { isAdmin, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
-  const [listingStats, setListingStats] = useState<any>(null);
+export default function AdminChatMessagePage() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { email: userEmail } = useParams();
   const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [newMessage, setNewMessage] = useState('');
+  const ws = useRef<WebSocket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    if (!authLoading && !isAdmin) {
-      router.push('/dashboard/user');
-    }
+    if (isAdmin && userEmail) {
+      chatApi.getHistoryForUser(userEmail as string).then((res) => {
+        setMessages(res.data);
+        scrollToBottom();
+      });
 
-    if (isAdmin) {
-      Promise.all([
-        dashboardApi.getAdminStats(),
-        listingsApi.getStats(),
-        dashboardApi.getAdminMessages(),
-      ])
-        .then(([statsRes, listingStatsRes, messagesRes]) => {
-          setStats(statsRes.data);
-          setListingStats(listingStatsRes.data);
-          setMessages(messagesRes.data);
-        })
-        .catch((err) => console.error('Failed to fetch admin data', err))
-        .finally(() => setLoading(false));
-    }
-  }, [isAdmin, authLoading, router]);
+      const token = localStorage.getItem('lux_token');
+      const wsUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(
+        /^http/,
+        'ws',
+      );
+      ws.current = new WebSocket(`${wsUrl}/api/chat/ws?token=${token}`);
 
-  if (authLoading || loading || !isAdmin) {
-    return <div className='text-gold-400 p-8'>Loading Admin Console...</div>;
+      ws.current.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (
+          message.type !== 'status' &&
+          (message.sender_email === userEmail ||
+            message.recipient_email === userEmail)
+        ) {
+          setMessages((prev) => [...prev, message]);
+        }
+      };
+
+      return () => {
+        ws.current?.close();
+      };
+    }
+  }, [isAdmin, userEmail]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() && ws.current && userEmail) {
+      const messagePayload = {
+        recipient_email: userEmail,
+        message: newMessage,
+      };
+      ws.current.send(JSON.stringify(messagePayload));
+      setNewMessage('');
+    }
+  };
+
+  if (authLoading || !isAdmin) {
+    return <div className='text-gold-400 p-8'>Loading...</div>;
   }
 
   return (
     <div className='space-y-8'>
-      <div className='flex justify-between items-center'>
-        <h1 className='section-title text-3xl text-gold-100'>
-          Admin <span className='text-gold-400'>Dashboard</span>
+      <div>
+        <h1 className='text-3xl font-display text-gold-100 mb-2'>
+          Conversation with <span className='text-gold-400'>{userEmail}</span>
         </h1>
-        <div className='flex gap-3'>
-          <Link
-            href='/dashboard/admin/manage-listings'
-            className='btn-ghost text-xs px-4 py-2'
-          >
-            Manage Listings
-          </Link>
-        </div>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-        {[
-          {
-            label: 'Total Inquiries',
-            value: stats.total_messages || 0,
-            icon: Mail,
-          },
-          {
-            label: 'Total Properties',
-            value: listingStats.total_listings || 0,
-            icon: Building,
-          },
-        ].map((item, i) => (
-          <div key={i} className='glass-card p-6 border-l-2 border-l-gold-400'>
-            <div className='flex justify-between items-start mb-2'>
-              <p className='text-xs text-gold-400/60 uppercase tracking-widest'>
-                {item.label}
-              </p>
-              <item.icon size={16} className='text-gold-400' />
-            </div>
-            <p className='text-2xl font-display text-gold-100'>{item.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className='glass-card p-8'>
-        <h3 className='text-lg font-display text-gold-100 mb-6'>
-          Recent Inquiries
-        </h3>
-        <div className='space-y-4'>
-          {messages.length === 0 ? (
-            <p className='text-gold-100/40'>No messages found.</p>
-          ) : (
-            messages.slice(0, 5).map((msg: any, i: number) => (
+      <div className='glass-card h-[60vh] flex flex-col'>
+        <div className='flex-1 p-6 space-y-4 overflow-y-auto'>
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex ${
+                msg.sender_email !== userEmail ? 'justify-end' : 'justify-start'
+              }`}
+            >
               <div
-                key={i}
-                className='p-4 bg-obsidian-950/50 rounded border border-gold-400/10 flex justify-between items-center'
+                className={`max-w-md p-3 rounded-lg ${
+                  msg.sender_email !== userEmail
+                    ? 'bg-gold-400/10 text-gold-100'
+                    : 'bg-obsidian-800 text-gold-100/80'
+                }`}
               >
-                <div>
-                  <p className='text-gold-100 font-medium'>{msg.subject}</p>
-                  <p className='text-sm text-gold-100/60'>
-                    {msg.name} ({msg.email})
-                  </p>
-                  <p className='text-xs text-gold-100/40 mt-1'>{msg.message}</p>
-                </div>
-                <div className='text-gold-400'>
-                  <MessageSquare size={16} />
-                </div>
+                <p className='text-sm'>{msg.message}</p>
+                <p className='text-xs text-gold-100/40 mt-1 text-right'>
+                  {new Date(msg.created_at).toLocaleTimeString()}
+                </p>
               </div>
-            ))
-          )}
+            </motion.div>
+          ))}
+          <div ref={messagesEndRef} />
         </div>
+        <form
+          onSubmit={handleSendMessage}
+          className='p-4 border-t border-gold-400/10 flex gap-4'
+        >
+          <input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className='lux-input flex-1'
+            placeholder={`Reply to ${userEmail}...`}
+          />
+          <button type='submit' className='btn-gold px-6'>
+            <Send size={16} />
+          </button>
+        </form>
       </div>
     </div>
   );

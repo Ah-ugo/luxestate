@@ -31,6 +31,11 @@ const ADMIN_ITEMS = [
     href: '/dashboard/admin/manage-listings',
     icon: List,
   },
+  {
+    name: 'Messages',
+    href: '/dashboard/admin/messages',
+    icon: Mail,
+  },
 ];
 
 interface SidebarProps {

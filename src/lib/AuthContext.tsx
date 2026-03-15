@@ -19,11 +19,27 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   logout: () => void;
+  refetchUser: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined,
 );
+
+const checkUser = async (setUser: (user: User | null) => void) => {
+  const token = localStorage.getItem('lux_token');
+  if (token) {
+    try {
+      const res = await authApi.getMe();
+      setUser(res.data);
+    } catch (error) {
+      console.error('Auth check failed', error);
+      localStorage.removeItem('lux_token');
+      setUser(null);
+    }
+  }
+  return null;
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,21 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const token = localStorage.getItem('lux_token');
-      if (token) {
-        try {
-          const res = await authApi.getMe();
-          setUser(res.data);
-        } catch (error) {
-          console.error('Auth check failed', error);
-          localStorage.removeItem('lux_token');
-          setUser(null);
-        }
-      }
-      setLoading(false);
-    };
-    checkUser();
+    checkUser(setUser).finally(() => setLoading(false));
   }, []);
 
   const logout = () => {
@@ -54,12 +56,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/login');
   };
 
+  const refetchUser = async () => {
+    setLoading(true);
+    await checkUser(setUser);
+    setLoading(false);
+  };
+
   const isAuthenticated = !!user;
   const isAdmin = user?.is_superuser || false;
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, user, isAdmin, loading, logout }}
+      value={{ isAuthenticated, user, isAdmin, loading, logout, refetchUser }}
     >
       {children}
     </AuthContext.Provider>
