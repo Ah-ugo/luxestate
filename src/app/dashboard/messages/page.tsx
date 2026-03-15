@@ -78,7 +78,7 @@ export default function MessagesPage() {
         </p>
       </div>
 
-      <div className='glass-card h-[60vh] flex flex-col'>
+      <div className='glass-card h-[75vh] flex flex-col relative z-10 overflow-hidden'>
         <div className='flex-1 p-6 space-y-4 overflow-y-auto'>
           {messages.map((msg, i) => (
             <motion.div
@@ -112,12 +112,12 @@ export default function MessagesPage() {
         </div>
         <form
           onSubmit={handleSendMessage}
-          className='p-4 border-t border-gold-400/10 flex gap-4'
+          className='p-4 border-t border-gold-400/10 flex gap-4 bg-obsidian-900/50'
         >
           <input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            className='lux-input flex-1'
+            className='lux-input flex-1 text-base'
             placeholder='Type your message...'
           />
           <button type='submit' className='btn-gold px-6'>

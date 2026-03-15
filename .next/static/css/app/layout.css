@@ -1606,6 +1606,9 @@ video {
 .h-screen {
   height: 100vh;
 }
+.h-\[75vh\] {
+  height: 75vh;
+}
 .min-h-\[100px\] {
   min-height: 100px;
 }
