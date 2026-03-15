@@ -1618,6 +1618,9 @@ video {
 .h-\[70dvh\] {
   height: 70dvh;
 }
+.h-\[65vh\] {
+  height: 65vh;
+}
 .min-h-\[100px\] {
   min-height: 100px;
 }
@@ -2166,6 +2169,9 @@ video {
 }
 .bg-obsidian-900\/90 {
   background-color: rgb(10 10 10 / 0.9);
+}
+.bg-obsidian-900\/60 {
+  background-color: rgb(10 10 10 / 0.6);
 }
 .bg-\[url\(\'https\:\/\/images\.unsplash\.com\/photo-1486406146926-c627a92ad1ab\?q\=80\&w\=2070\'\)\] {
   background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070');

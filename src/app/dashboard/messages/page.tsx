@@ -78,8 +78,9 @@ export default function MessagesPage() {
         </p>
       </div>
 
-      <div className='glass-card h-[70dvh] sm:h-[75vh] flex flex-col relative z-10 overflow-hidden isolate'>
-        <div className='flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto min-h-0 overscroll-y-contain touch-pan-y'>
+      {/* Removed glass-card class to prevent pseudo-element overlapping issues on mobile */}
+      <div className='bg-obsidian-900/60 backdrop-blur-xl border border-gold-400/10 rounded-2xl h-[65vh] sm:h-[75vh] flex flex-col relative overflow-hidden'>
+        <div className='flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto'>
           {messages.map((msg, i) => (
             <motion.div
               key={i}
@@ -112,12 +113,12 @@ export default function MessagesPage() {
         </div>
         <form
           onSubmit={handleSendMessage}
-          className='p-3 sm:p-4 border-t border-gold-400/10 flex gap-3 sm:gap-4 bg-obsidian-900/90 relative z-50'
+          className='p-3 sm:p-4 border-t border-gold-400/10 flex gap-3 sm:gap-4 bg-obsidian-900 relative z-20'
         >
           <input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            className='lux-input flex-1 text-base text-gold-100 caret-gold-400 relative z-50 pointer-events-auto bg-obsidian-950/50'
+            className='lux-input flex-1 text-base text-gold-100 caret-gold-400 bg-obsidian-950/50'
             placeholder='Type your message...'
           />
           <button type='submit' className='btn-gold px-6'>
