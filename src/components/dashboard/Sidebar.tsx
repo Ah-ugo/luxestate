@@ -58,7 +58,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={`fixed top-0 left-0 z-50 w-64 bg-obsidian-900 border-r border-gold-400/10 flex flex-col h-full transition-transform duration-300 ease-in-out md:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? 'translate-x-0' : '-translate-x-full invisible md:visible'
         }`}
       >
         <div className='p-8 flex items-center justify-between'>

@@ -50,14 +50,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       {/* Backdrop for mobile */}
-      <div
-        className={`fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-      />
+      {isOpen && (
+        <div
+          className='fixed inset-0 bg-black/60 z-40 md:hidden'
+          onClick={onClose}
+        />
+      )}
       <aside
-        className={`w-64 bg-obsidian-900 border-r border-gold-400/10 flex flex-col h-screen fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`w-64 bg-obsidian-900 border-r border-gold-400/10 flex flex-col h-screen fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full invisible md:visible'}`}
       >
         <div className='p-8'>
           <Link
