@@ -30,7 +30,7 @@ export default function MessagesPage() {
       const token = localStorage.getItem('lux_token');
       const wsUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(
         /^https/,
-        'ws',
+        'wss',
       );
       ws.current = new WebSocket(`${wsUrl}/api/chat/ws?token=${token}`);
 
