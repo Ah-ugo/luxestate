@@ -72,6 +72,9 @@ export default function EditPropertyPage() {
       const res = await listingsApi.addImages(id as string, formData);
       setForm(res.data);
       setNewFiles(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       setError('Failed to upload new images.');
     } finally {
@@ -168,6 +171,59 @@ export default function EditPropertyPage() {
             />
           </div>
         </div>
+
+        {/* Image Management */}
+        <div className='space-y-4 pt-6 border-t border-gold-400/10'>
+          <h3 className='text-lg font-display text-gold-100'>Manage Images</h3>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+            {form.images &&
+              form.images.map(
+                (
+                  image: { url: string; alt: string; public_id: string },
+                  index: number,
+                ) => (
+                  <div key={index} className='relative group'>
+                    <Image
+                      src={image.url}
+                      alt={image.alt}
+                      width={200}
+                      height={200}
+                      className='rounded-lg object-cover w-full h-32'
+                    />
+                    <button
+                      type='button'
+                      onClick={() => handleDeleteImage(image.public_id)}
+                      className='absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity'
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ),
+              )}
+          </div>
+          <div className='flex items-end gap-4'>
+            <div className='space-y-2 flex-1'>
+              <label className='modal-label'>Add New Images</label>
+              <input
+                type='file'
+                multiple
+                ref={fileInputRef}
+                onChange={(e) => setNewFiles(e.target.files)}
+                className='lux-input'
+              />
+            </div>
+            <button
+              type='button'
+              onClick={handleAddImages}
+              disabled={loading || !newFiles}
+              className='btn-ghost flex items-center gap-2'
+            >
+              <Upload size={16} />
+              Upload
+            </button>
+          </div>
+        </div>
+
         {error && <p className='text-red-400 text-sm'>{error}</p>}
         <div className='pt-6 border-t border-gold-400/10'>
           <button
