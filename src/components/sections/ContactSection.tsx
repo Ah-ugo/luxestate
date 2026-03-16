@@ -71,7 +71,7 @@ export default function ContactSection() {
                 value: '152 West 57th St, New York, NY 10019',
               },
               { label: 'Phone', value: '+1 (212) 555-0199' },
-              { label: 'Email', value: 'concierge@luxestate.us' },
+              { label: 'Email', value: 'concierge@luxestate.online' },
             ].map((item) => (
               <div
                 key={item.label}

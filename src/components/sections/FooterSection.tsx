@@ -91,10 +91,10 @@ export default function FooterSection() {
               Manhattan, New York.
             </p>
             <a
-              href='mailto:concierge@luxestate.us'
+              href='mailto:concierge@luxestate.online'
               className='text-gold-400 text-sm hover:underline'
             >
-              concierge@luxestate.us
+              concierge@luxestate.online
             </a>
           </div>
         </div>
