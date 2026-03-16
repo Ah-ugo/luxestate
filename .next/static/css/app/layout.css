@@ -1323,6 +1323,9 @@ video {
 .pointer-events-auto {
   pointer-events: auto;
 }
+.invisible {
+  visibility: hidden;
+}
 .fixed {
   position: fixed;
 }
@@ -2915,6 +2918,10 @@ video {
   }
 }
 @media (min-width: 768px) {
+
+  .md\:visible {
+    visibility: visible;
+  }
 
   .md\:col-span-2 {
     grid-column: span 2 / span 2;

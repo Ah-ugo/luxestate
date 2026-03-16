@@ -28,9 +28,9 @@ export default function HomePage() {
       .then((r) => setStats(r.data))
       .catch(() => {});
     // Auto-seed if needed (dev mode)
-    if (process.env.NODE_ENV === 'development') {
-      listingsApi.seed().catch(() => {});
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   listingsApi.seed().catch(() => {});
+    // }
   }, []);
 
   return (
