@@ -4,7 +4,7 @@ import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL || 'https://luxestate.vercel.app';
+    process.env.NEXT_PUBLIC_BASE_URL || 'https://www.luxestate.online';
 
   return {
     rules: {

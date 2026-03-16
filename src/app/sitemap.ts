@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL || 'https://luxestate.vercel.app';
+  process.env.NEXT_PUBLIC_BASE_URL || 'https://www.luxestate.online';
 
 interface ListingSitemapData {
   slug: string;

@@ -40,12 +40,12 @@ export const metadata: Metadata = {
     'Lagos',
     'Abuja',
   ],
-  metadataBase: new URL('https://luxestate.vercel.app'),
+  metadataBase: new URL('https://www.luxestate.online'),
   openGraph: {
     title: 'LuxEstate — Premium Apartment Investment Platform',
     description:
       'Discover exclusive listings in prime locations, backed by expert guidance and seamless service.',
-    url: 'https://luxestate.vercel.app',
+    url: 'https://www.luxestate.online',
     siteName: 'LuxEstate',
     images: [
       {
