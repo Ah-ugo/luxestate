@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { dashboardApi, listingsApi } from '@/lib/api';
 import { Mail, Building, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/lib/useAuth';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -54,10 +55,18 @@ export default function AdminDashboard() {
           Admin <span className='text-gold-400'>Console</span>
         </h1>
         <div className='flex gap-3'>
-          <button className='btn-ghost text-xs px-4 py-2'>
+          <Link
+            href='/dashboard/admin/manage-listings'
+            className='btn-ghost text-xs px-4 py-2 flex items-center justify-center'
+          >
             Manage Listings
-          </button>
-          <button className='btn-gold text-xs px-4 py-2'>Add Property</button>
+          </Link>
+          <Link
+            href='/dashboard/admin/manage-listings'
+            className='btn-gold text-xs px-4 py-2 flex items-center justify-center'
+          >
+            Add Property
+          </Link>
         </div>
       </div>
 
