@@ -40,6 +40,11 @@ export const metadata: Metadata = {
     'Lagos',
     'Abuja',
   ],
+  icons: {
+    icon: '/logo1.png',
+    shortcut: '/logo1.png',
+    apple: '/logo1.png',
+  },
   metadataBase: new URL('https://www.luxestate.online'),
   openGraph: {
     title: 'LuxEstate — Premium Apartment Investment Platform',

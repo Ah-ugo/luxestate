@@ -1,7 +1,4 @@
 {
-  "/process/page": "app/process/page.js",
   "/page": "app/page.js",
-  "/contact/page": "app/contact/page.js",
-  "/testimonials/page": "app/testimonials/page.js",
-  "/listings/[slug]/page": "app/listings/[slug]/page.js"
+  "/_not-found/page": "app/_not-found/page.js"
 }
